@@ -52,14 +52,13 @@ public:
     // Validates a control-block image, and the unit tests also use this function.
     static bool validate(const uint8_t *ctrl, size_t ctrl_size, const Layout &layout, std::string *why);
 
-    // Does the known start sequence but does not change the frame rate, because SteamVR's eye service sets it.
+    // Writes the enables and the transition word.
     void start_streaming(const Layout &layout);
     // Returns the camera frame rate in fps that SteamVR's eye service set, or 0 if it is not valid.
     float read_fps(const Layout &layout) const;
 
     Indices read_indices(const Layout &layout) const;
     const uint8_t *slot_ptr(const Layout &layout, bool right, uint32_t idx) const;
-    void release(const Layout &layout, bool right, uint32_t idx);
 
     const uint8_t *ctrl() const { return ctrl_; }
 

@@ -12,7 +12,7 @@ public:
     enum class Result {
         None,   // There is no new pair yet.
         Pair,   // Both sides changed, so (l, r) is a new pair.
-        Half,   // One side changed and the other side did not follow, so release the lone side.
+        Half,   // One side changed and the other side did not follow, so drop the lone side.
     };
 
     struct Step {

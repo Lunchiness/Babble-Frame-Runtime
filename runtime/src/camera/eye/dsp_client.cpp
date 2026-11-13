@@ -213,10 +213,6 @@ void DspClient::store32(uint32_t off, uint32_t v) {
 
 void DspClient::start_streaming(const Layout &l) {
     const uint32_t b = l.ctrl_base;
-    for (uint32_t i = 0; i < l.slots; i++) {
-        store32(b + l.locks_l + 4 * i, 1);
-        store32(b + l.locks_r + 4 * i, 1);
-    }
     store32(b + l.enables, 1);
     store32(b + l.enables + 4, 1);
     store32(b + l.transition, 1);
@@ -239,12 +235,6 @@ const uint8_t *DspClient::slot_ptr(const Layout &l, bool right, uint32_t idx) co
     if (idx >= l.slots)
         return nullptr;
     return data_ + l.ctrl_base + (right ? l.ring_r : l.ring_l) + size_t(idx) * l.slot_stride;
-}
-
-void DspClient::release(const Layout &l, bool right, uint32_t idx) {
-    if (idx >= l.slots)
-        return;
-    store32(l.ctrl_base + (right ? l.locks_r : l.locks_l) + 4 * idx, 1);
 }
 
 }
