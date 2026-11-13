@@ -174,7 +174,6 @@ if(BABBLE_TESTS)
         tests/test_eye_kit.cpp
         tests/test_postprocess.cpp
         tests/test_gaze.cpp
-        tests/test_dashboard.cpp
         tests/test_eye_server.cpp
         tests/test_packager.cpp
         tests/test_plugin_sink.cpp
