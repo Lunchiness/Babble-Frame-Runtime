@@ -86,6 +86,7 @@ private:
     RateStat frames_, processed_, side_l_, side_r_;
     Counter layout_faults_, restarts_, pool_exhausted_, late_detect_, half_pairs_;   // These are lifetime totals.
     Counter camera_rate_;
+    Counter torn_copies_;   // Copies dropped because dsp_service published a new frame during the copy.
     uint32_t consecutive_faults_ = 0;
     LatencyStat copy_time_;
 };

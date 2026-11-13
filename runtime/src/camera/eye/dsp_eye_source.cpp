@@ -61,6 +61,7 @@ DspEyeSource::DspEyeSource(const nlohmann::json &cfg, SourceDeps deps)
     stats_.add(name_ + ".fps_r", &side_r_);
     stats_.add(name_ + ".half_pairs", &half_pairs_);
     stats_.add(name_ + ".camera_rate", &camera_rate_);
+    stats_.add(name_ + ".torn_copies", &torn_copies_);
 }
 
 DspEyeSource::~DspEyeSource() {
@@ -172,19 +173,28 @@ void DspEyeSource::stop(const char *why) {
     LOG.info("eye: stopped (%s)", why);
 }
 
+// Copies a slot without a lock, so that Valve's gaze tracker never finds a slot that we hold. 
+// This can result in us receiving torn frames but I beleive it's more important to let the eyeservice receive frames unobstructed. 
+// Todo: Find a better solution that lets us sync up with the mailbox without intrfering with the eyeservice. 
 bool DspEyeSource::copy_view(bool right, uint32_t idx, uint64_t now, uint32_t seq, FramePtr *out) {
     const uint8_t *src = client_.slot_ptr(layout_, right, idx);
     auto frame = pool_->acquire();
     if (!frame || !src) {
         pool_exhausted_.add();
-        client_.release(layout_, right, idx);
         return false;
     }
     const Crop &c = right ? crop_r_ : crop_l_;
     uint8_t *dst = const_cast<uint8_t *>(frame->data);
     for (uint32_t y = 0; y < c.h; y++)
         memcpy(dst + size_t(y) * c.w, src + size_t(c.y + y) * layout_.width + c.x, c.w);
-    client_.release(layout_, right, idx);
+    // With no lock, dsp_service can write this slot again. If the index did not move during the copy, the service did not finish a frame, so the copy is clean. 
+    // When it moves, drop the copy because we cannot prove it is clean.
+    std::atomic_thread_fence(std::memory_order_acquire);
+    const auto after = client_.read_indices(layout_);
+    if ((right ? after.r : after.l) != idx) {
+        torn_copies_.add();
+        return false;
+    }
 
     frame->origin = right ? FrameOrigin::EyeR : FrameOrigin::EyeL;
     frame->fmt = PixelFormat::Gray8;
@@ -295,12 +305,8 @@ void DspEyeSource::run() {
         if (step.new_r)
             side_r_.tick();
         if (step.result == EyePairer::Result::Half) {
-            // Give the lone slot back unused because a pair with an old image is not correct.
+            // Drop the lone side because a pair with an old image is not correct.
             half_pairs_.add();
-            if (step.half_l)
-                client_.release(layout_, false, idx.l);
-            if (step.half_r)
-                client_.release(layout_, true, idx.r);
             last_frame = now;
             continue;
         }
@@ -324,20 +330,13 @@ void DspEyeSource::run() {
         const bool want_tap = tap && tap->tap_wanted();
         // Count the pairs instead of a timer, so that jitter does not cause a dropped pair.
         const bool forward = pair_count++ % divisor_.load(std::memory_order_relaxed) == 0;
-        if (!forward && !want_tap) {
-            // Skip the copy, but give the slots back as a used pair does.
-            client_.release(layout_, false, idx.l);
-            client_.release(layout_, true, idx.r);
-            continue;
-        }
+        if (!forward && !want_tap)
+            continue;   // Skip the copy.
 
         uint64_t t0 = mono_ns();
         StereoFrame sf;
         seq++;
-        // Run both copies because each copy must give its ring slot back to dsp_service.
-        const bool ok_l = copy_view(false, idx.l, step.l_ns, seq, &sf.left);
-        const bool ok_r = copy_view(true, idx.r, step.r_ns, seq, &sf.right);
-        if (!ok_l || !ok_r)
+        if (!copy_view(false, idx.l, step.l_ns, seq, &sf.left) || !copy_view(true, idx.r, step.r_ns, seq, &sf.right))
             continue;
         copy_time_.add(mono_ns() - t0);
         sf.skew_ns = int64_t(step.l_ns) - int64_t(step.r_ns);
