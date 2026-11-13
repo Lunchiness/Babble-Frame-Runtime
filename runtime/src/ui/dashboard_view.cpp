@@ -24,20 +24,20 @@ nlohmann::json choice_setting(const Choice &c) {
 namespace {
 
 // These colours copy the dark Fluent palette of Baballonia.
-constexpr Color kBg = Color::hex(0x181818);
-constexpr Color kPanel = Color::hex(0x202020);
-constexpr Color kCard = Color::hex(0x292929);
-constexpr Color kCardHover = Color::hex(0x343434);
-constexpr Color kOnCard = Color::hex(0x3a3a3a), kOnCardHover = Color::hex(0x454545);   // For secondary buttons on a card.
-constexpr Color kLine = Color::hex(0x343434);
-constexpr Color kText = Color::hex(0xffffff);
-constexpr Color kMuted = Color::hex(0x9d9d9d);
-constexpr Color kAccent = Color::hex(0x0073cf);
-constexpr Color kAccentHover = Color::hex(0x1684db);
-constexpr Color kGreen = Color::hex(0x3fcf73);
-constexpr Color kAmber = Color::hex(0xf2b33d);
-constexpr Color kRed = Color::hex(0xf0544f);
-constexpr Color kGrey = Color::hex(0x6b6b6b);
+constexpr Color kBg = Color::hex(0x181825);
+constexpr Color kPanel = Color::hex(0x1e1e2e);
+constexpr Color kCard = Color::hex(0x313244);
+constexpr Color kCardHover = Color::hex(0x45475a);
+constexpr Color kOnCard = Color::hex(0x181825), kOnCardHover = Color::hex(0x1e1e2e);   // For secondary buttons on a card.
+constexpr Color kLine = Color::hex(0x313244);
+constexpr Color kText = Color::hex(0xcdd6f4);
+constexpr Color kMuted = Color::hex(0x7f849c);
+constexpr Color kAccent = Color::hex(0x89b4fa);
+constexpr Color kAccentHover = Color::hex(0x74c7ec);
+constexpr Color kGreen = Color::hex(0xa6e3a1);
+constexpr Color kAmber = Color::hex(0xfab387);
+constexpr Color kRed = Color::hex(0xf38ba8);
+constexpr Color kGrey = Color::hex(0x313244);
 
 constexpr float kMargin = 56;
 
