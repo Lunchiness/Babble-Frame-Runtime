@@ -38,12 +38,12 @@ constexpr Color kGreen = Color::hex(0xa6e3a1);
 constexpr Color kAmber = Color::hex(0xfab387);
 constexpr Color kRed = Color::hex(0xf38ba8);
 constexpr Color kGrey = Color::hex(0x313244);
+constexpr Color kViolet = Color::hex(0xcba6f7);
 
 constexpr float kMargin = 56;
 
 // Each eye has a gaze plot and three output meters with labels.
 constexpr float kPlot = 174, kEyeGroupW = 532;
-constexpr Color kViolet = Color::hex(0xcba6f7);
 
 Color health_color(Health h) {
     switch (h) {
